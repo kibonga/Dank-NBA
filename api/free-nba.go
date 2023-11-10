@@ -2,6 +2,8 @@ package api
 
 import (
 	"Dank-NBA/datatypes"
+	"Dank-NBA/responses"
+	json2 "encoding/json"
 	"fmt"
 	"io"
 	"net/http"
@@ -26,13 +28,13 @@ func Get(id int) (*datatypes.Player, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to convert data")
 	}
-	json := string(body)
-	fmt.Println(json)
+	var player responses.Player
+	err = json2.Unmarshal(body, &player)
+
 	return &datatypes.Player{
-		FirstName:    "Lebron",
-		LastName:     "James",
-		HeightFeet:   6,
-		HeightInches: 6,
-		Position:     "PF",
+		FirstName: player.FirstName,
+		LastName:  player.LastName,
+		Height:    fmt.Sprintf("%d'%d\"", player.HeightFeet, player.HeightInches),
+		Position:  player.Position,
 	}, nil
 }
