@@ -3,28 +3,41 @@ package main
 import (
 	"Dank-NBA/api"
 	"fmt"
-	"sync"
+	"net/http"
+	"strconv"
+	"strings"
 )
 
-func main() {
-	players := []int{1, 2, 3}
-	var wg sync.WaitGroup
-
-	for _, id := range players {
-		wg.Add(1)
-		go func(id int) {
-			defer wg.Done()
-			getPlayer(id)
-		}(id)
+func hello(w http.ResponseWriter, r *http.Request) {
+	_, err := w.Write([]byte("Hello from a Go program\n"))
+	if err != nil {
+		w.Write([]byte("Hello request failed\n"))
 	}
-
-	wg.Wait()
 }
 
-func getPlayer(id int) {
+func getPlayer(w http.ResponseWriter, request *http.Request) {
+	url := strings.Split(request.URL.String(), "/")
+	id, err := strconv.Atoi(url[2])
+
+	if err != nil {
+		fmt.Println("Invalid id given")
+		panic(err)
+	}
+
 	player, err := api.Get(id)
 	if err != nil {
 		fmt.Println("error occurred", err)
 	}
 	fmt.Println(player)
+}
+
+func main() {
+	server := http.NewServeMux()
+	server.HandleFunc("/hello", hello)
+	server.HandleFunc("/player/", getPlayer)
+
+	err := http.ListenAndServe(":3000", server)
+	if err != nil {
+		fmt.Println("Error while opening the server")
+	}
 }
